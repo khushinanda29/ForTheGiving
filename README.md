@@ -102,7 +102,6 @@ erDiagram
     text tattoo_details
     boolean is_on_medication
     text medication_details
-    text medical_details "Combined illness, meds, travel, tattoo details"
     varchar emergency_contact_name
     varchar emergency_contact_phone
     varchar emergency_contact_relationship
