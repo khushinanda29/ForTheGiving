@@ -78,23 +78,46 @@ erDiagram
         timestamp created_at
         timestamp updated_at
     }
-    donors {
-        integer id PK
-        integer user_id FK "Unique"
-        varchar first_name
-        varchar last_name
-        date date_of_birth
-        varchar blood_type
-        varchar eligibility_status
-        date last_donation_date
-        numeric latitude
-        numeric longitude
-        boolean email_notifications
-        boolean sms_notifications
-        text medical_details "Combined illness, meds, etc"
-        timestamp eligibility_last_checked
-        timestamp eligibility_expires "When eligibility needs re-check"
-    }
+    
+   donors {
+    integer id PK
+    integer user_id FK "Unique"
+    varchar first_name
+    varchar last_name
+    date date_of_birth
+    varchar gender
+    varchar phone_number
+    varchar street
+    varchar city
+    varchar state
+    varchar zip_code
+    varchar blood_type
+    numeric weight
+    numeric height
+    boolean has_chronic_illness
+    text chronic_illness_details
+    boolean has_traveled
+    text travel_details
+    boolean has_tattoo
+    text tattoo_details
+    boolean is_on_medication
+    text medication_details
+    text medical_details "Combined illness, meds, travel, tattoo details"
+    varchar emergency_contact_name
+    varchar emergency_contact_phone
+    varchar emergency_contact_relationship
+    varchar eligibility_status
+    timestamp eligibility_last_checked
+    timestamp eligibility_expires
+    date last_donation_date
+    numeric latitude
+    numeric longitude
+    boolean email_notifications
+    boolean sms_notifications
+    timestamp created_at
+    timestamp updated_at
+}
+
     hospitals {
         integer id PK
         integer user_id FK "Unique"
