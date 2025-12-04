@@ -1,0 +1,4 @@
+DATABASE_URL=postgresql://postgres:<PASSWORD>@db.<unq_url>.supabase.co:<port>/postgres
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+PORT=3001
+GOOGLE_MAPS_API_KEY=api_key_from_geocoder
