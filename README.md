@@ -53,8 +53,111 @@ The system uses a fully relational schema implemented in Supabase with the follo
 
 Most tables follow BCNF or 3NF normalization.  
 Every non-key attribute depends fully on its primary key to reduce redundancy and eliminate update anomalies.  
-
 Donor and hospital locations are stored using latitude and longitude to support radius-based filtering.
+
+### Entity-Relationship Diagram
+```mermaid
+erDiagram
+    users ||--o| donors : "has profile (1:1)"
+    users ||--o| hospitals : "has profile (1:1)"
+    donors ||--o{ appointments : "makes (1:N)"
+    donors ||--o{ urgency_responses : "responds to (1:N)"
+    hospitals ||--o{ appointments : "hosts (1:N)"
+    hospitals ||--o{ blood_inventory : "manages (1:N)"
+    hospitals ||--o{ patients : "treats (1:N)"
+    hospitals ||--o{ urgency_requests : "broadcasts (1:N)"
+    urgency_requests ||--o{ urgency_responses : "generates (1:N)"
+    urgency_requests ||--o{ appointments : "leads to (1:N, optional)"
+    urgency_responses o|--o| appointments : "results in (0:1)"
+    users {
+        integer id PK
+        varchar email
+        varchar password_hash
+        varchar role "donor or hospital"
+        boolean profile_completed
+        timestamp created_at
+        timestamp updated_at
+    }
+    donors {
+        integer id PK
+        integer user_id FK "Unique"
+        varchar first_name
+        varchar last_name
+        date date_of_birth
+        varchar blood_type
+        varchar eligibility_status
+        date last_donation_date
+        numeric latitude
+        numeric longitude
+        boolean email_notifications
+        boolean sms_notifications
+        text medical_details "Combined illness, meds, etc"
+        timestamp eligibility_last_checked
+        timestamp eligibility_expires "When eligibility needs re-check"
+    }
+    hospitals {
+        integer id PK
+        integer user_id FK "Unique"
+        varchar name
+        text address
+        integer blood_urgency_level
+        text operating_hours
+        numeric latitude
+        numeric longitude
+    }
+    appointments {
+        integer id PK
+        integer donor_id FK
+        integer hospital_id FK
+        integer urgency_request_id FK "nullable"
+        timestamp appointment_date
+        varchar status "scheduled, completed, cancelled, no_show"
+        varchar blood_type
+        boolean donor_arrived
+        boolean donation_completed
+        timestamp cancelled_at
+        timestamp completed_at
+    }
+    blood_inventory {
+        integer id PK
+        integer hospital_id FK
+        varchar blood_type
+        integer quantity
+        timestamp updated_at
+        timestamp expires_at "When blood unit expires"
+    }
+    patients {
+        integer id PK
+        integer hospital_id FK
+        varchar patient_name
+        varchar blood_type
+        integer urgency_level
+        integer units_required
+        varchar status "pending, fulfilled, cancelled"
+        date required_date
+        timestamp created_at
+    }
+    urgency_requests {
+        integer id PK
+        integer hospital_id FK
+        varchar blood_type
+        integer urgency_level
+        integer radius_miles
+        boolean is_active
+        timestamp created_at
+        timestamp expires_at "When request auto-deactivates"
+        text message "Custom message from hospital"
+    }
+    urgency_responses {
+        integer id PK
+        integer urgency_request_id FK
+        integer donor_id FK
+        integer scheduled_appointment_id FK "nullable"
+        timestamp responded_at
+        varchar response_type "accepted, rejected"
+        boolean notification_sent
+    }
+```
 
 ---
 
@@ -80,6 +183,7 @@ Donor and hospital locations are stored using latitude and longitude to support 
 ---
 
 ## Challenges & What We Learned
+
 During development, we gained experience with full-stack engineering, database design, real-time APIs, and geolocation systems. Some key challenges included:
 - Migrating from MySQL to Supabase for better collaboration and built-in real-time features
 - Replacing custom WebSocket logic with Supabase subscriptions for reliable updates
