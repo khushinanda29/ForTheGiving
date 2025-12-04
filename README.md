@@ -62,6 +62,8 @@ erDiagram
     users ||--o| hospitals : "has profile (1:1)"
     donors ||--o{ appointments : "makes (1:N)"
     donors ||--o{ urgency_responses : "responds to (1:N)"
+    donors ||--o{ admin_eligibility_overrides : "receives (1:N)"
+    donors ||--o{ eligibility_audit_log : "has audit log (1:N)"
     hospitals ||--o{ appointments : "hosts (1:N)"
     hospitals ||--o{ blood_inventory : "manages (1:N)"
     hospitals ||--o{ patients : "treats (1:N)"
@@ -69,115 +71,155 @@ erDiagram
     urgency_requests ||--o{ urgency_responses : "generates (1:N)"
     urgency_requests ||--o{ appointments : "leads to (1:N, optional)"
     urgency_responses o|--o| appointments : "results in (0:1)"
+    appointments }|--|| urgency_requests : "linked to (optional)"
+    
     users {
         integer id PK
-        varchar email
+        varchar email UK
         varchar password_hash
         varchar role "donor or hospital"
         boolean profile_completed
         timestamp created_at
         timestamp updated_at
+        varchar password
     }
     
-   donors {
-    integer id PK
-    integer user_id FK "Unique"
-    varchar first_name
-    varchar last_name
-    date date_of_birth
-    varchar gender
-    varchar phone_number
-    varchar street
-    varchar city
-    varchar state
-    varchar zip_code
-    varchar blood_type
-    numeric weight
-    numeric height
-    boolean has_chronic_illness
-    text chronic_illness_details
-    boolean has_traveled
-    text travel_details
-    boolean has_tattoo
-    text tattoo_details
-    boolean is_on_medication
-    text medication_details
-    varchar emergency_contact_name
-    varchar emergency_contact_phone
-    varchar emergency_contact_relationship
-    varchar eligibility_status
-    timestamp eligibility_last_checked
-    timestamp eligibility_expires
-    date last_donation_date
-    numeric latitude
-    numeric longitude
-    boolean email_notifications
-    boolean sms_notifications
-    timestamp created_at
-    timestamp updated_at
-}
-
+    donors {
+        integer id PK
+        integer user_id FK "Unique"
+        varchar first_name
+        varchar last_name
+        date date_of_birth
+        varchar gender
+        varchar phone_number
+        varchar street
+        varchar city
+        varchar state
+        varchar zip_code
+        varchar blood_type
+        numeric weight
+        numeric height
+        boolean has_chronic_illness
+        text chronic_illness_details
+        boolean has_traveled
+        text travel_details
+        boolean has_tattoo
+        text tattoo_details
+        boolean is_on_medication
+        text medication_details
+        varchar emergency_contact_name
+        varchar emergency_contact_phone
+        varchar emergency_contact_relationship
+        varchar eligibility_status
+        date last_donation_date
+        timestamp created_at
+        timestamp updated_at
+        numeric latitude
+        numeric longitude
+        boolean email_notifications
+        boolean sms_notifications
+    }
+    
     hospitals {
         integer id PK
         integer user_id FK "Unique"
         varchar name
         text address
-        integer blood_urgency_level
+        varchar city
+        varchar state
+        varchar zip_code
+        varchar phone_number
+        varchar email
+        integer blood_urgency_level "1-5"
         text operating_hours
+        timestamp created_at
+        timestamp updated_at
         numeric latitude
         numeric longitude
     }
+    
     appointments {
         integer id PK
         integer donor_id FK
         integer hospital_id FK
         integer urgency_request_id FK "nullable"
         timestamp appointment_date
-        varchar status "scheduled, completed, cancelled, no_show"
+        varchar status "scheduled, completed, cancelled, no-show"
         varchar blood_type
         boolean donor_arrived
         boolean donation_completed
+        text notes
+        text donor_notes
+        text hospital_notes
+        timestamp created_at
+        timestamp updated_at
         timestamp cancelled_at
-        timestamp completed_at
+        varchar cancelled_by
+        text cancellation_reason
     }
+    
     blood_inventory {
         integer id PK
         integer hospital_id FK
         varchar blood_type
         integer quantity
+        timestamp created_at
         timestamp updated_at
-        timestamp expires_at "When blood unit expires"
     }
+    
     patients {
         integer id PK
         integer hospital_id FK
         varchar patient_name
         varchar blood_type
-        integer urgency_level
+        integer urgency_level "1-5"
         integer units_required
         varchar status "pending, fulfilled, cancelled"
         date required_date
+        text notes
         timestamp created_at
     }
+    
     urgency_requests {
         integer id PK
         integer hospital_id FK
-        varchar blood_type
-        integer urgency_level
+        varchar blood_type "A+, A-, B+, B-, AB+, AB-, O+, O-"
+        integer urgency_level "1-5"
+        text message
         integer radius_miles
         boolean is_active
         timestamp created_at
-        timestamp expires_at "When request auto-deactivates"
-        text message "Custom message from hospital"
+        timestamp updated_at
     }
+    
     urgency_responses {
         integer id PK
         integer urgency_request_id FK
         integer donor_id FK
         integer scheduled_appointment_id FK "nullable"
         timestamp responded_at
-        varchar response_type "accepted, rejected"
-        boolean notification_sent
+        varchar response_type "accepted, rejected, cancelled"
+        text rejection_reason
+    }
+    
+    admin_eligibility_overrides {
+        integer id PK
+        integer donor_id FK
+        integer admin_user_id FK
+        varchar previous_status
+        varchar new_status
+        text override_reason
+        text admin_notes
+        timestamp created_at
+    }
+    
+    eligibility_audit_log {
+        integer id PK
+        integer donor_user_id FK
+        varchar previous_status
+        varchar new_status
+        jsonb reasons
+        timestamp created_at
     }
 ```
 
